@@ -1,0 +1,7 @@
+.DS_Store
+.venv/
+.pytest_cache/
+.cache/
+
+# Future Google Apps Script workspace
+apps_script/.clasp.json
