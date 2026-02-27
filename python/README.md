@@ -2,6 +2,8 @@
 
 CLI tool to read Georgia player names from Google Sheets, query tennis rating sources, and write consolidated output.
 
+Project location: `python/` (this directory). If you are in repo root, run `cd python` first.
+
 ## Quick start
 
 1. Install `uv` (https://docs.astral.sh/uv/).
@@ -9,6 +11,52 @@ CLI tool to read Georgia player names from Google Sheets, query tennis rating so
 3. Copy `.env.example` to `.env` and fill values.
 4. Run CLI: `uv run alta-ratings run`
 5. Run tests: `uv run pytest -q`
+
+## Google Sheets setup (`.env`)
+
+Required env vars for Google integration:
+
+- `GOOGLE_SERVICE_ACCOUNT_JSON`
+- `GOOGLE_SHEET_ID`
+
+### 1) Create a Google service account key JSON
+
+1. Open Google Cloud Console.
+2. Create/select a project.
+3. Enable `Google Sheets API` and `Google Drive API`.
+4. Go to `IAM & Admin` -> `Service Accounts`.
+5. Create a service account (any name).
+6. Open the service account -> `Keys` -> `Add key` -> `Create new key` -> `JSON`.
+7. Save that JSON file locally (for example `google-sa.json`).
+
+Set in `.env`:
+
+`GOOGLE_SERVICE_ACCOUNT_JSON=/absolute/path/to/google-sa.json`
+
+### 2) Share your Google Sheet with the service account
+
+1. Open the JSON file and copy `client_email`.
+2. Open your Google Sheet.
+3. Click `Share` and add that `client_email` with `Editor` access.
+
+### 3) Get the Google Sheet ID
+
+From sheet URL:
+
+`https://docs.google.com/spreadsheets/d/<THIS_IS_SHEET_ID>/edit#gid=0`
+
+Set in `.env`:
+
+`GOOGLE_SHEET_ID=<THIS_IS_SHEET_ID>`
+
+### 4) Input tab requirements
+
+Create a tab named exactly `Input` with headers:
+
+- `first_name`
+- `last_name`
+- optional: `city_hint`
+- optional: `state_hint`
 
 ## Source configuration
 
