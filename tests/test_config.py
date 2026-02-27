@@ -16,20 +16,20 @@ def disable_dotenv(monkeypatch: pytest.MonkeyPatch) -> None:
     [
         "GOOGLE_SERVICE_ACCOUNT_JSON",
         "GOOGLE_SHEET_ID",
-        "ULTIMATE_USERNAME",
-        "ULTIMATE_PASSWORD",
-        "ULTIMATE_LOGIN_URL",
-        "ULTIMATE_SEARCH_URL",
+        "T2_USERNAME",
+        "T2_PASSWORD",
+        "T2_LOGIN_URL",
+        "T2_SEARCH_URL",
     ],
 )
 def test_load_settings_requires_expected_env_vars(monkeypatch: pytest.MonkeyPatch, missing_key: str) -> None:
     baseline = {
         "GOOGLE_SERVICE_ACCOUNT_JSON": "/tmp/sa.json",
         "GOOGLE_SHEET_ID": "sheet-id",
-        "ULTIMATE_USERNAME": "u",
-        "ULTIMATE_PASSWORD": "p",
-        "ULTIMATE_LOGIN_URL": "https://u/login",
-        "ULTIMATE_SEARCH_URL": "https://u/search",
+        "T2_USERNAME": "u",
+        "T2_PASSWORD": "p",
+        "T2_LOGIN_URL": "https://t/login",
+        "T2_SEARCH_URL": "https://t/search",
     }
 
     for key, value in baseline.items():
@@ -44,25 +44,25 @@ def test_load_settings_requires_expected_env_vars(monkeypatch: pytest.MonkeyPatc
 @pytest.mark.parametrize(
     "missing_key",
     [
-        "T2_USERNAME",
-        "T2_PASSWORD",
-        "T2_LOGIN_URL",
-        "T2_SEARCH_URL",
+        "ULTIMATE_USERNAME",
+        "ULTIMATE_PASSWORD",
+        "ULTIMATE_LOGIN_URL",
+        "ULTIMATE_SEARCH_URL",
     ],
 )
-def test_load_settings_requires_t2_when_enabled(monkeypatch: pytest.MonkeyPatch, missing_key: str) -> None:
+def test_load_settings_requires_ultimate_when_enabled(monkeypatch: pytest.MonkeyPatch, missing_key: str) -> None:
     baseline = {
         "GOOGLE_SERVICE_ACCOUNT_JSON": "/tmp/sa.json",
         "GOOGLE_SHEET_ID": "sheet-id",
-        "ULTIMATE_USERNAME": "u",
-        "ULTIMATE_PASSWORD": "p",
-        "ULTIMATE_LOGIN_URL": "https://u/login",
-        "ULTIMATE_SEARCH_URL": "https://u/search",
-        "ENABLE_T2": "true",
         "T2_USERNAME": "u",
         "T2_PASSWORD": "p",
         "T2_LOGIN_URL": "https://t/login",
         "T2_SEARCH_URL": "https://t/search",
+        "ENABLE_ULTIMATE": "true",
+        "ULTIMATE_USERNAME": "u",
+        "ULTIMATE_PASSWORD": "p",
+        "ULTIMATE_LOGIN_URL": "https://u/login",
+        "ULTIMATE_SEARCH_URL": "https://u/search",
     }
     for key, value in baseline.items():
         monkeypatch.setenv(key, value)

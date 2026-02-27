@@ -5,6 +5,8 @@ def test_normalize_rating_parses_numeric_values() -> None:
     assert normalize_rating("4.0") == 4.0
     assert normalize_rating("NTRP 3.5C") == 3.5
     assert normalize_rating("2.5 singles") == 2.5
+    assert normalize_rating("3.5-") == 3.49
+    assert normalize_rating("rated 4.0- doubles") == 3.99
 
 
 def test_normalize_rating_rejects_invalid_values() -> None:

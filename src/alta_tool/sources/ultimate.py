@@ -172,4 +172,4 @@ class UltimateAdapter(SourceAdapter):
     def is_required(self) -> bool:
         return True
     YEAR_RE = re.compile(r"\b(19|20)\d{2}\b")
-    RATING_RE = re.compile(r"\b([2-6](?:\.0|\.5)?)\b")
+    RATING_RE = re.compile(r"\b([2-6](?:\.0|\.5)?-?)\b")

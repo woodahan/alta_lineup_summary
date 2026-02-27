@@ -20,22 +20,22 @@ def main() -> None:
 
 def _build_adapters(settings: Settings) -> list[SourceAdapter]:
     adapters: list[SourceAdapter] = [
-        UltimateAdapter(
-            username=settings.ultimate.username,
-            password=settings.ultimate.password,
-            login_url=settings.ultimate.login_url,
-            search_url=settings.ultimate.search_url,
+        T2Adapter(
+            username=settings.t2.username,
+            password=settings.t2.password,
+            login_url=settings.t2.login_url,
+            search_url=settings.t2.search_url,
             cache_dir=settings.cache_dir,
-        ),
+        )
     ]
 
-    if settings.enable_t2 and settings.t2.search_url:
+    if settings.enable_ultimate and settings.ultimate.search_url:
         adapters.append(
-            T2Adapter(
-                username=settings.t2.username,
-                password=settings.t2.password,
-                login_url=settings.t2.login_url,
-                search_url=settings.t2.search_url,
+            UltimateAdapter(
+                username=settings.ultimate.username,
+                password=settings.ultimate.password,
+                login_url=settings.ultimate.login_url,
+                search_url=settings.ultimate.search_url,
                 cache_dir=settings.cache_dir,
             )
         )
@@ -86,7 +86,7 @@ def run(
                 t2=settings.t2,
                 usta=settings.usta,
                 cache_dir=settings.cache_dir,
-                enable_t2=settings.enable_t2,
+                enable_ultimate=settings.enable_ultimate,
             )
 
         log("Building source adapters...")
