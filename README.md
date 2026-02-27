@@ -13,8 +13,8 @@ CLI tool to read Georgia player names from Google Sheets, query tennis rating so
 ## Source configuration
 
 - T2 is required.
-- Ultimate is optional by default (`ENABLE_ULTIMATE=false`).
-- Set `ENABLE_ULTIMATE=true` only when Ultimate login/search config is ready.
+- Ultimate is required.
+- USTA is best-effort (auth optional), but include `USTA_SEARCH_URL` to query it each run.
 
 ## Ultimate response debugging
 
@@ -49,8 +49,17 @@ Optional columns:
 - `first_name`
 - `last_name`
 - `player_city`
-- `highest_rating`
-- `play_year`
+- `highest_rating_t2`
+- `highest_year_t2`
+- `profile_url_t2`
+- `highest_rating_ultimate`
+- `highest_year_ultimate`
+- `profile_url_ultimate`
+- `highest_rating_usta`
+- `highest_year_usta`
+- `profile_url_usta`
+- `winning_rating`
+- `winning_play_year`
 - `winning_source`
 - `profile_url`
 - `match_confidence`

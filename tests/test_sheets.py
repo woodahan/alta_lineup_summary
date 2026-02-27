@@ -76,10 +76,19 @@ def test_sheets_read_and_write(monkeypatch):
             first_name="Jane",
             last_name="Doe",
             player_city="Atlanta",
-            highest_rating="4.0",
-            play_year=2024,
-            winning_source="usta",
-            profile_url="https://profile",
+            highest_rating_t2="4.0",
+            highest_year_t2=2024,
+            profile_url_t2="https://t2",
+            highest_rating_ultimate=None,
+            highest_year_ultimate=None,
+            profile_url_ultimate=None,
+            highest_rating_usta=None,
+            highest_year_usta=None,
+            profile_url_usta=None,
+            winning_rating="4.0",
+            winning_play_year=2024,
+            winning_source="t2",
+            profile_url="https://t2",
             match_confidence="high",
             status="ok",
             notes="",
@@ -91,3 +100,5 @@ def test_sheets_read_and_write(monkeypatch):
     assert range_name == "A1"
     assert values[0][0] == "first_name"
     assert values[1][0] == "Jane"
+    assert "highest_rating_t2" in values[0]
+    assert "winning_rating" in values[0]
