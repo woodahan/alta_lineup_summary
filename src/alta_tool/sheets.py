@@ -17,7 +17,14 @@ class SheetsClient:
         self._sheet = self._gc.open_by_key(sheet_id)
 
     def read_input(self) -> list[PlayerQuery]:
-        ws = self._sheet.worksheet(INPUT_TAB)
+        try:
+            ws = self._sheet.worksheet(INPUT_TAB)
+        except gspread.exceptions.WorksheetNotFound as exc:
+            raise ValueError(
+                "Missing required worksheet tab 'Input'. "
+                "Create a tab named exactly 'Input' with headers: "
+                "first_name,last_name,city_hint,state_hint"
+            ) from exc
         rows = ws.get_all_records(default_blank="")
         if not ws.row_values(1):
             raise ValueError("Input tab is missing header row")

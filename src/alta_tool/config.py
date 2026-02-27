@@ -24,6 +24,7 @@ class Settings:
     t2: SourceSettings
     usta: SourceSettings
     cache_dir: str
+    enable_t2: bool
 
 
 def _source(prefix: str, *, required_auth: bool) -> SourceSettings:
@@ -37,20 +38,29 @@ def _source(prefix: str, *, required_auth: bool) -> SourceSettings:
     )
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def load_settings() -> Settings:
     load_dotenv()
 
     service_account_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
     sheet_id = os.getenv("GOOGLE_SHEET_ID", "").strip()
     cache_dir = os.getenv("ALTA_CACHE_DIR", ".cache/alta_tool").strip()
+    enable_t2 = _env_bool("ENABLE_T2", False)
 
     settings = Settings(
         google_service_account_json=service_account_json,
         google_sheet_id=sheet_id,
         ultimate=_source("ULTIMATE", required_auth=True),
-        t2=_source("T2", required_auth=True),
+        t2=_source("T2", required_auth=enable_t2),
         usta=_source("USTA", required_auth=False),
         cache_dir=cache_dir,
+        enable_t2=enable_t2,
     )
     validate_settings(settings)
     return settings
@@ -63,7 +73,11 @@ def validate_settings(settings: Settings) -> None:
     if not settings.google_sheet_id:
         missing.append("GOOGLE_SHEET_ID")
 
-    for source in (settings.ultimate, settings.t2):
+    required_sources = [settings.ultimate]
+    if settings.enable_t2:
+        required_sources.append(settings.t2)
+
+    for source in required_sources:
         if not source.username:
             missing.append(f"{source.name.upper()}_USERNAME")
         if not source.password:

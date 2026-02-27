@@ -71,7 +71,15 @@ class SourceAdapter(ABC):
         return self._parse_candidates(response)
 
     def _parse_candidates(self, response: requests.Response) -> list[CandidateProfile]:
-        data = response.json()
+        try:
+            data = response.json()
+        except ValueError as exc:
+            content_type = response.headers.get("content-type", "")
+            snippet = response.text[:160].replace("\n", " ").strip()
+            raise ValueError(
+                f"{self.source_name} returned non-JSON response "
+                f"(status={response.status_code}, content_type={content_type}, body_startswith={snippet!r})"
+            ) from exc
         profiles = data.get("profiles", []) if isinstance(data, dict) else []
         candidates: list[CandidateProfile] = []
 
