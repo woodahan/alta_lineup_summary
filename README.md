@@ -34,6 +34,15 @@ Use this script to inspect what T2 search actually returns:
 It prints status/final URL/content type and saves the full raw body to:
 - `.cache/t2_search_response.txt` (default)
 
+## USTA response debugging
+
+Use this script to inspect what USTA search actually returns:
+
+`uv run python scripts/inspect_usta_search.py --first-name Jane --last-name Doe --state GA`
+
+It prints status/final URL/content type and saves the full raw body to:
+- `.cache/usta_search_response.txt` (default)
+
 ## Input sheet (`Input` tab)
 
 Required columns:
