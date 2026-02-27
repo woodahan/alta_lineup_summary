@@ -75,8 +75,6 @@ class OutputRow:
     highest_rating_ultimate: str | None
     highest_year_ultimate: int | None
     profile_url_ultimate: str | None
-    highest_rating_usta: str | None
-    highest_year_usta: int | None
     profile_url_usta: str | None
     winning_rating: str | None
     winning_play_year: int | None
@@ -98,8 +96,6 @@ class OutputRow:
             "highest_rating_ultimate",
             "highest_year_ultimate",
             "profile_url_ultimate",
-            "highest_rating_usta",
-            "highest_year_usta",
             "profile_url_usta",
             "winning_rating",
             "winning_play_year",
@@ -121,8 +117,6 @@ class OutputRow:
             self.highest_rating_ultimate or "",
             str(self.highest_year_ultimate or ""),
             self.profile_url_ultimate or "",
-            self.highest_rating_usta or "",
-            str(self.highest_year_usta or ""),
             self.profile_url_usta or "",
             self.winning_rating or "",
             str(self.winning_play_year or ""),

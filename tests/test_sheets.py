@@ -82,8 +82,6 @@ def test_sheets_read_and_write(monkeypatch):
             highest_rating_ultimate=None,
             highest_year_ultimate=None,
             profile_url_ultimate=None,
-            highest_rating_usta=None,
-            highest_year_usta=None,
             profile_url_usta=None,
             winning_rating="4.0",
             winning_play_year=2024,

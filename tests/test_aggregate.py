@@ -92,7 +92,7 @@ def test_process_player_populates_per_source_and_winner() -> None:
     assert row.highest_year_t2 == 2024
     assert row.highest_rating_ultimate == "4.0"
     assert row.highest_year_ultimate == 2023
-    assert row.highest_rating_usta is None
+    assert row.profile_url_usta is None
     assert row.winning_rating == "4.0"
     assert row.winning_play_year == 2023
     assert row.winning_source == "ultimate"

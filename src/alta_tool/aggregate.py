@@ -130,15 +130,23 @@ def process_player(query: PlayerQuery, adapters: list[SourceAdapter]) -> OutputR
         if source_has_ratings:
             source_results[source] = _source_highest(source, rating_records)
         else:
-            note = f"{source}_no_ratings"
-            extra_notes.append(note)
-            source_results[source] = SourceResult(
-                highest_rating=None,
-                highest_year=None,
-                profile_url=selected.profile_url,
-                status="not_found",
-                note=note,
-            )
+            if source == "usta":
+                source_results[source] = SourceResult(
+                    highest_rating=None,
+                    highest_year=None,
+                    profile_url=selected.profile_url,
+                    status="ok",
+                )
+            else:
+                note = f"{source}_no_ratings"
+                extra_notes.append(note)
+                source_results[source] = SourceResult(
+                    highest_rating=None,
+                    highest_year=None,
+                    profile_url=selected.profile_url,
+                    status="not_found",
+                    note=note,
+                )
 
     for required_source in ("t2", "ultimate", "usta"):
         source_results.setdefault(
@@ -181,8 +189,6 @@ def process_player(query: PlayerQuery, adapters: list[SourceAdapter]) -> OutputR
         highest_rating_ultimate=ultimate_result.highest_rating,
         highest_year_ultimate=ultimate_result.highest_year,
         profile_url_ultimate=ultimate_result.profile_url,
-        highest_rating_usta=usta_result.highest_rating,
-        highest_year_usta=usta_result.highest_year,
         profile_url_usta=usta_result.profile_url,
         winning_rating=aggregated.winning_rating if aggregated else None,
         winning_play_year=aggregated.winning_play_year if aggregated else None,

@@ -64,8 +64,6 @@ Optional columns:
 - `highest_rating_ultimate`
 - `highest_year_ultimate`
 - `profile_url_ultimate`
-- `highest_rating_usta`
-- `highest_year_usta`
 - `profile_url_usta`
 - `winning_rating`
 - `winning_play_year`
