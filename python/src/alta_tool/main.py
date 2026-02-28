@@ -6,7 +6,7 @@ import typer
 
 from .aggregate import process_player
 from .config import Settings, load_settings
-from .sheets import SheetsClient
+from .io import IoBackend, build_sheet_backend
 from .sources import T2Adapter, UltimateAdapter, UstaAdapter
 from .sources.base import SourceAdapter
 
@@ -64,7 +64,15 @@ def _validate_required_auth(adapters: list[SourceAdapter]) -> None:
 
 @app.command()
 def run(
+    io_backend: IoBackend = typer.Option(
+        "google",
+        "--io-backend",
+        help="Sheet backend to use: 'google' or 'local'",
+    ),
     sheet_id: str | None = typer.Option(None, help="Override GOOGLE_SHEET_ID from env"),
+    local_workbook: str | None = typer.Option(
+        None, "--local-workbook", help="Override LOCAL_WORKBOOK_PATH for local backend"
+    ),
     verbose: bool = typer.Option(True, "--verbose/--quiet", help="Show step-by-step progress logs"),
 ) -> None:
     try:
@@ -74,16 +82,6 @@ def run(
 
         log("Loading configuration...")
         settings = load_settings()
-        if sheet_id:
-            settings = Settings(
-                google_service_account_json=settings.google_service_account_json,
-                google_sheet_id=sheet_id,
-                ultimate=settings.ultimate,
-                t2=settings.t2,
-                usta=settings.usta,
-                cache_dir=settings.cache_dir,
-            )
-
         log("Building source adapters...")
         adapters = _build_adapters(settings)
         log(f"Using sources: {', '.join(adapter.source_name for adapter in adapters)}")
@@ -92,10 +90,12 @@ def run(
         _validate_required_auth(adapters)
         log("Authentication complete.")
 
-        log("Connecting to Google Sheets...")
-        sheets = SheetsClient(
-            service_account_json=settings.google_service_account_json,
-            sheet_id=settings.google_sheet_id,
+        log(f"Connecting to {io_backend} sheet backend...")
+        sheets = build_sheet_backend(
+            settings,
+            io_backend=io_backend,
+            sheet_id_override=sheet_id,
+            local_workbook_override=local_workbook,
         )
 
         log("Reading input rows from 'Input' worksheet...")

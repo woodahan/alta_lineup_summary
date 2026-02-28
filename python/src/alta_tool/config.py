@@ -20,6 +20,7 @@ class SourceSettings:
 class Settings:
     google_service_account_json: str
     google_sheet_id: str
+    local_workbook_path: str | None
     ultimate: SourceSettings
     t2: SourceSettings
     usta: SourceSettings
@@ -42,11 +43,13 @@ def load_settings() -> Settings:
 
     service_account_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
     sheet_id = os.getenv("GOOGLE_SHEET_ID", "").strip()
+    local_workbook_path = os.getenv("LOCAL_WORKBOOK_PATH", "").strip() or None
     cache_dir = os.getenv("ALTA_CACHE_DIR", ".cache/alta_tool").strip()
 
     settings = Settings(
         google_service_account_json=service_account_json,
         google_sheet_id=sheet_id,
+        local_workbook_path=local_workbook_path,
         ultimate=_source("ULTIMATE", required_auth=True),
         t2=_source("T2", required_auth=True),
         usta=_source("USTA", required_auth=False),
@@ -58,10 +61,6 @@ def load_settings() -> Settings:
 
 def validate_settings(settings: Settings) -> None:
     missing: list[str] = []
-    if not settings.google_service_account_json:
-        missing.append("GOOGLE_SERVICE_ACCOUNT_JSON")
-    if not settings.google_sheet_id:
-        missing.append("GOOGLE_SHEET_ID")
 
     for source in (settings.t2, settings.ultimate):
         if not source.username:

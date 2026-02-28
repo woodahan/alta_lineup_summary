@@ -1,5 +1,5 @@
 from alta_tool.models import OutputRow
-from alta_tool.sheets import SheetsClient
+from alta_tool.io.google import GoogleSheetsClient
 
 
 class FakeWorksheet:
@@ -64,9 +64,9 @@ def test_sheets_read_and_write(monkeypatch):
         assert filename == "/tmp/sa.json"
         return FakeGspreadClient(fake_spreadsheet)
 
-    monkeypatch.setattr("alta_tool.sheets.gspread.service_account", fake_service_account)
+    monkeypatch.setattr("alta_tool.io.google.gspread.service_account", fake_service_account)
 
-    client = SheetsClient(service_account_json="/tmp/sa.json", sheet_id="sheet-id")
+    client = GoogleSheetsClient(service_account_json="/tmp/sa.json", sheet_id="sheet-id")
     queries = client.read_input()
     assert len(queries) == 1
     assert queries[0].first_name == "Jane"
