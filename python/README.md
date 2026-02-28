@@ -24,15 +24,6 @@ Examples:
 - `uv run alta-ratings run`
 - `uv run alta-ratings run --io-backend local --local-workbook ./players.xlsx`
 
-## Google Sheets setup (`.env`)
-
-Required env vars for Google integration:
-
-- `GOOGLE_SERVICE_ACCOUNT_JSON`
-- `GOOGLE_SHEET_ID`
-
-These are only required when using `--io-backend google` (or default mode).
-
 ## Local Excel setup (`.env`)
 
 For local mode, set:
@@ -46,6 +37,15 @@ Workbook requirements:
 - Workbook must be `.xlsx`
 - Input tab must be named exactly `Input`
 - Output tab is named `Output` (created automatically if missing)
+
+## Google Sheets setup (`.env`)
+
+Required env vars for Google integration:
+
+- `GOOGLE_SERVICE_ACCOUNT_JSON`
+- `GOOGLE_SHEET_ID`
+
+These are only required when using `--io-backend google` (or default mode).
 
 ### 1) Create a Google service account key JSON
 
