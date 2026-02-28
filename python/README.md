@@ -22,7 +22,7 @@ Project location: `python/` (this directory). If you are in repo root, run `cd p
 Examples:
 
 - `uv run alta-ratings run`
-- `uv run alta-ratings run --io-backend local --local-workbook ./players.xlsx`
+- `uv run alta-ratings run --io-backend local` or `uv run alta-ratings run --io-backend local --local-workbook <xlsx path>`
 
 ## Local Excel setup (`.env`)
 
