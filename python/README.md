@@ -1,6 +1,6 @@
 # alta-ratings
 
-CLI tool to read Georgia player names from Google Sheets, query tennis rating sources, and write consolidated output.
+CLI tool to read Georgia player names from a sheet source (Google Sheets or local Excel), query tennis rating sources, and write consolidated output.
 
 Project location: `python/` (this directory). If you are in repo root, run `cd python` first.
 
@@ -12,12 +12,40 @@ Project location: `python/` (this directory). If you are in repo root, run `cd p
 4. Run CLI: `uv run alta-ratings run`
 5. Run tests: `uv run pytest -q`
 
+## Sheet backends
+
+`run` supports two sheet backends:
+
+- `google` (default)
+- `local` (`.xlsx` file; compatible with Apple Numbers and Excel)
+
+Examples:
+
+- `uv run alta-ratings run`
+- `uv run alta-ratings run --io-backend local --local-workbook ./players.xlsx`
+
 ## Google Sheets setup (`.env`)
 
 Required env vars for Google integration:
 
 - `GOOGLE_SERVICE_ACCOUNT_JSON`
 - `GOOGLE_SHEET_ID`
+
+These are only required when using `--io-backend google` (or default mode).
+
+## Local Excel setup (`.env`)
+
+For local mode, set:
+
+- `LOCAL_WORKBOOK_PATH=/absolute/path/to/players.xlsx`
+
+or pass `--local-workbook` at runtime.
+
+Workbook requirements:
+
+- Workbook must be `.xlsx`
+- Input tab must be named exactly `Input`
+- Output tab is named `Output` (created automatically if missing)
 
 ### 1) Create a Google service account key JSON
 
