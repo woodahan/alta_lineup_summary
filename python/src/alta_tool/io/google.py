@@ -63,3 +63,4 @@ class GoogleSheetsClient:
 
         ws.clear()
         ws.update(values=values, range_name="A1")
+        ws.format("Q:Q", {"wrapStrategy": "WRAP"})

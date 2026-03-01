@@ -72,8 +72,11 @@ class LocalExcelClient:
             ws.delete_rows(1, ws.max_row)
 
         ws.append(OutputRow.headers())
+        notes_col = OutputRow.headers().index("notes") + 1
+        ws.cell(row=1, column=notes_col).alignment = openpyxl.styles.Alignment(wrap_text=True)
         for row in rows:
             ws.append(row.to_sheet_row())
+            ws.cell(row=ws.max_row, column=notes_col).alignment = openpyxl.styles.Alignment(wrap_text=True)
 
         wb.save(self._workbook_path)
 
