@@ -53,7 +53,7 @@ def test_local_excel_read_input_and_write_output(tmp_path: Path) -> None:
             profile_url="https://t2",
             match_confidence="high",
             status="ok",
-            notes="",
+            notes="- t2_no_ratings\n- t2_ambiguous_urls:\n  - https://one\n  - https://two",
         )
     ]
     client.write_output(rows)
@@ -63,6 +63,8 @@ def test_local_excel_read_input_and_write_output(tmp_path: Path) -> None:
     out = wb["Output"]
     assert out.cell(row=1, column=1).value == "first_name"
     assert out.cell(row=2, column=1).value == "Jane"
+    assert out.cell(row=2, column=17).alignment.wrap_text is True
+    assert "\n" in out.cell(row=2, column=17).value
 
 
 def test_local_excel_requires_input_tab(tmp_path: Path) -> None:

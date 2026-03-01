@@ -8,6 +8,7 @@ class FakeWorksheet:
         self._rows = rows
         self.cleared = False
         self.updated_values = None
+        self.formatted_ranges = []
 
     def get_all_records(self, default_blank: str = ""):
         return self._rows
@@ -22,6 +23,9 @@ class FakeWorksheet:
 
     def update(self, values, range_name: str):
         self.updated_values = (values, range_name)
+
+    def format(self, range_name: str, cell_format: dict):
+        self.formatted_ranges.append((range_name, cell_format))
 
 
 class FakeSpreadsheet:
@@ -100,3 +104,4 @@ def test_sheets_read_and_write(monkeypatch):
     assert values[1][0] == "Jane"
     assert "highest_rating_t2" in values[0]
     assert "winning_rating" in values[0]
+    assert ("Q:Q", {"wrapStrategy": "WRAP"}) in fake_spreadsheet.output_ws.formatted_ranges

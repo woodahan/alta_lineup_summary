@@ -36,7 +36,16 @@ def _notes_with_urls(urls: list[str], extra_notes: list[str] | None = None) -> s
         notes.append(f"candidate_urls={' | '.join(urls)}")
     if extra_notes:
         notes.extend(extra_notes)
-    return "; ".join(notes)
+    lines: list[str] = []
+    for note in notes:
+        key, sep, value = note.partition("=")
+        if sep and (key == "candidate_urls" or key.endswith("_ambiguous_urls")):
+            lines.append(f"- {key}:")
+            parsed_urls = [item.strip() for item in value.split("|") if item.strip()]
+            lines.extend(f"  - {url}" for url in parsed_urls)
+        else:
+            lines.append(f"- {note}")
+    return "\n".join(lines)
 
 
 def _source_highest(source: str, records: list[RatingRecord]) -> SourceResult:

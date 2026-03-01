@@ -12,8 +12,9 @@ from .base import SourceAdapter
 class T2Adapter(SourceAdapter):
     source_name = "t2"
     required_auth = True
-    RATING_RE = re.compile(r"\b([2-6](?:\.0|\.5)?-?)\b")
+    RATING_RE = re.compile(r"(?<!\d)([2-7](?:\.(?:0|25|5|75))?-?)(?!\d)")
     YEAR_RE = re.compile(r"\b(19|20)\d{2}\b")
+    TWO_DIGIT_YEAR_RE = re.compile(r"'(\d{2})\b")
 
     def _looks_like_login_page(self, html: str, url: str | None = None) -> bool:
         haystack = (html or "").lower()
@@ -200,11 +201,10 @@ class T2Adapter(SourceAdapter):
             row_text = " ".join(row.get_text(" ", strip=True).split())
             if not row_text:
                 continue
-            year_match = self.YEAR_RE.search(row_text)
+            year = self._extract_year(row_text)
             rating_match = self.RATING_RE.search(row_text)
-            if not year_match or not rating_match:
+            if year is None or not rating_match:
                 continue
-            year = int(year_match.group(0))
             rating = rating_match.group(1)
             key = (rating, year)
             if key in seen:
@@ -212,6 +212,19 @@ class T2Adapter(SourceAdapter):
             seen.add(key)
             ratings.append(RawRating(value=rating, year=year))
         return ratings
+
+    def _extract_year(self, row_text: str) -> int | None:
+        four_digit = self.YEAR_RE.search(row_text)
+        if four_digit:
+            return int(four_digit.group(0))
+
+        two_digit = self.TWO_DIGIT_YEAR_RE.search(row_text)
+        if not two_digit:
+            return None
+
+        yy = int(two_digit.group(1))
+        # Pivot at 70: '70-'99 => 1970-1999, otherwise 2000-2069.
+        return 1900 + yy if yy >= 70 else 2000 + yy
 
     def is_required(self) -> bool:
         return True

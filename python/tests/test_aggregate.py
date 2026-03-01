@@ -65,7 +65,10 @@ def test_process_player_outputs_ambiguous_urls() -> None:
     )
 
     assert row.status == "ambiguous"
-    assert "candidate_urls=https://one | https://two" in row.notes
+    assert "- candidate_urls:" in row.notes
+    assert "  - https://one" in row.notes
+    assert "  - https://two" in row.notes
+    assert "- t2_ambiguous_urls:" in row.notes
     assert row.profile_url is None
 
 
@@ -111,6 +114,6 @@ def test_process_player_all_errors_sets_error_status() -> None:
     )
 
     assert row.status == "error"
-    assert "t2_error=" in row.notes
-    assert "ultimate_error=" in row.notes
-    assert "usta_error=" in row.notes
+    assert "- t2_error=" in row.notes
+    assert "- ultimate_error=" in row.notes
+    assert "- usta_error=" in row.notes
