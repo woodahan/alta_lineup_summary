@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 
 # Supports ratings like 3.0, 3.5, 3.75, 4.0- (minus only, no plus tier expected).
-RATING_PATTERN = re.compile(r"(?<!\d)([2-7](?:\.\d{1,2})?)(-?)(?!\d)")
+RATING_PATTERN = re.compile(r"(?<![\d.])([2-7](?:\.\d{1,2})?)(-?)(?![\d.])")
 
 
 def normalize_rating(value: str) -> float | None:

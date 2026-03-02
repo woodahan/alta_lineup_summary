@@ -13,6 +13,7 @@ from .base import SourceAdapter
 class UltimateAdapter(SourceAdapter):
     source_name = "ultimate"
     required_auth = True
+    RANK_NUMBER_RE = re.compile(r"(\d+)")
 
     def _looks_like_sign_in_page(self, html: str, url: str | None = None) -> bool:
         haystack = (html or "").lower()
@@ -144,7 +145,7 @@ class UltimateAdapter(SourceAdapter):
 
     def _fetch_history_ratings(self, profile_url: str) -> list[RawRating]:
         ratings: list[RawRating] = []
-        seen: set[tuple[str, int]] = set()
+        by_key: dict[tuple[str, int], int] = {}
         try:
             history_response = self.session.get(profile_url, timeout=20)
             history_response.raise_for_status()
@@ -162,14 +163,107 @@ class UltimateAdapter(SourceAdapter):
                 continue
             year = int(year_match.group(0))
             value = rating_match.group(1)
+            division_ranking, league_ranking = self._extract_rankings(row)
             key = (value, year)
-            if key in seen:
+            if key in by_key:
+                existing = ratings[by_key[key]]
+                if existing.division_ranking is not None or existing.league_ranking is not None:
+                    continue
+                ratings[by_key[key]] = RawRating(
+                    value=value,
+                    year=year,
+                    division_ranking=division_ranking,
+                    league_ranking=league_ranking,
+                )
                 continue
-            seen.add(key)
-            ratings.append(RawRating(value=value, year=year))
+            by_key[key] = len(ratings)
+            ratings.append(
+                RawRating(
+                    value=value,
+                    year=year,
+                    division_ranking=division_ranking,
+                    league_ranking=league_ranking,
+                )
+            )
         return ratings
+
+    def _extract_rankings(self, row) -> tuple[int | None, int | None]:
+        table = row.find_parent("table")
+        header_map: dict[str, int] = {}
+        if table:
+            header_cells = table.select("tr th")
+            if not header_cells:
+                first_row = table.select_one("tr")
+                if first_row:
+                    header_cells = first_row.select("td, th")
+            # Some pages collapse all labels into one header-like cell; index
+            # mapping is unreliable in that shape, so use textual fallback only.
+            if len(header_cells) > 1:
+                header_map = {
+                    self._normalize_header(cell.get_text(" ", strip=True)): idx
+                    for idx, cell in enumerate(header_cells)
+                }
+
+        cells = row.find_all(["td", "th"])
+        values = [cell.get_text(" ", strip=True) for cell in cells]
+        row_text = " ".join(values)
+
+        division_ranking = self._extract_rank_by_header(values, header_map, "division")
+        league_ranking = self._extract_rank_by_header(values, header_map, "league")
+
+        if division_ranking is None and league_ranking is None:
+            division_ranking = self._extract_rank_by_header(values, header_map, "generic")
+        if division_ranking is None and league_ranking is None:
+            rating_match = self.RATING_RE.search(row_text)
+            if rating_match:
+                division_ranking, league_ranking = self._extract_ranks_after_rating(row_text, rating_match.group(1))
+
+        return division_ranking, league_ranking
+
+    def _extract_rank_by_header(
+        self, values: list[str], header_map: dict[str, int], rank_type: str
+    ) -> int | None:
+        for header, idx in header_map.items():
+            if idx >= len(values):
+                continue
+            if rank_type == "division" and self._is_division_rank_header(header):
+                return self._parse_rank_number(values[idx])
+            if rank_type == "league" and self._is_league_rank_header(header):
+                return self._parse_rank_number(values[idx])
+            if rank_type == "generic" and header == "rank":
+                return self._parse_rank_number(values[idx])
+        return None
+
+    def _parse_rank_number(self, value: str) -> int | None:
+        cleaned = value.strip()
+        if not cleaned or cleaned in {"-", "N/A", "n/a"}:
+            return None
+        match = self.RANK_NUMBER_RE.search(cleaned)
+        if not match:
+            return None
+        return int(match.group(1))
+
+    def _normalize_header(self, value: str) -> str:
+        return re.sub(r"\s+", " ", value.strip().lower())
+
+    def _is_division_rank_header(self, header: str) -> bool:
+        return "rank" in header and ("division" in header or re.search(r"\bdiv\.?\b", header) is not None)
+
+    def _is_league_rank_header(self, header: str) -> bool:
+        return "rank" in header and ("league" in header or re.search(r"\bleag\.?\b", header) is not None)
+
+    def _extract_ranks_after_rating(self, row_text: str, rating: str) -> tuple[int | None, int | None]:
+        # Ultimate season rows are often rendered as:
+        # "... <level/rating> <div_rank> <league_rank> <points> ..."
+        token_pattern = re.compile(
+            rf"(?<![\d.]){re.escape(rating)}(?![\d.])\s+(\d+)\s+(\d+)\b"
+        )
+        match = token_pattern.search(row_text)
+        if not match:
+            return None, None
+        return int(match.group(1)), int(match.group(2))
 
     def is_required(self) -> bool:
         return True
     YEAR_RE = re.compile(r"\b(19|20)\d{2}\b")
-    RATING_RE = re.compile(r"\b([2-6](?:\.0|\.5)?-?)\b")
+    RATING_RE = re.compile(r"(?<![\d.])([2-7](?:\.(?:0|25|5|75))?-?)(?![\d.])")

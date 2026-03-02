@@ -12,9 +12,10 @@ from .base import SourceAdapter
 class T2Adapter(SourceAdapter):
     source_name = "t2"
     required_auth = True
-    RATING_RE = re.compile(r"(?<!\d)([2-7](?:\.(?:0|25|5|75))?-?)(?!\d)")
+    RATING_RE = re.compile(r"(?<![\d.])([2-7](?:\.(?:0|25|5|75))?-?)(?![\d.])")
     YEAR_RE = re.compile(r"\b(19|20)\d{2}\b")
     TWO_DIGIT_YEAR_RE = re.compile(r"'(\d{2})\b")
+    RANK_NUMBER_RE = re.compile(r"(\d+)")
 
     def _looks_like_login_page(self, html: str, url: str | None = None) -> bool:
         haystack = (html or "").lower()
@@ -196,7 +197,7 @@ class T2Adapter(SourceAdapter):
         detail_soup = BeautifulSoup(detail.text, "html.parser")
         history_block = detail_soup.select_one("div#ctl00_PageBody_PlayerHistory") or detail_soup
         ratings: list[RawRating] = []
-        seen: set[tuple[str, int]] = set()
+        by_key: dict[tuple[str, int], int] = {}
         for row in history_block.select("tr"):
             row_text = " ".join(row.get_text(" ", strip=True).split())
             if not row_text:
@@ -205,12 +206,29 @@ class T2Adapter(SourceAdapter):
             rating_match = self.RATING_RE.search(row_text)
             if year is None or not rating_match:
                 continue
+            division_ranking, league_ranking = self._extract_rankings(row, row_text, rating_match.group(1))
             rating = rating_match.group(1)
             key = (rating, year)
-            if key in seen:
+            if key in by_key:
+                existing = ratings[by_key[key]]
+                if existing.division_ranking is not None or existing.league_ranking is not None:
+                    continue
+                ratings[by_key[key]] = RawRating(
+                    value=rating,
+                    year=year,
+                    division_ranking=division_ranking,
+                    league_ranking=league_ranking,
+                )
                 continue
-            seen.add(key)
-            ratings.append(RawRating(value=rating, year=year))
+            by_key[key] = len(ratings)
+            ratings.append(
+                RawRating(
+                    value=rating,
+                    year=year,
+                    division_ranking=division_ranking,
+                    league_ranking=league_ranking,
+                )
+            )
         return ratings
 
     def _extract_year(self, row_text: str) -> int | None:
@@ -225,6 +243,67 @@ class T2Adapter(SourceAdapter):
         yy = int(two_digit.group(1))
         # Pivot at 70: '70-'99 => 1970-1999, otherwise 2000-2069.
         return 1900 + yy if yy >= 70 else 2000 + yy
+
+    def _extract_rankings(self, row, row_text: str, rating: str) -> tuple[int | None, int | None]:
+        table = row.find_parent("table")
+        header_map: dict[str, int] = {}
+        if table:
+            header_cells = table.select("tr th")
+            header_map = {
+                self._normalize_header(cell.get_text(" ", strip=True)): idx
+                for idx, cell in enumerate(header_cells)
+            }
+
+        cells = row.find_all(["td", "th"])
+        values = [cell.get_text(" ", strip=True) for cell in cells]
+
+        division_ranking = self._extract_rank_by_header(values, header_map, "division")
+        league_ranking = self._extract_rank_by_header(values, header_map, "league")
+
+        if division_ranking is None and league_ranking is None:
+            # Fallback: generic "rank" column maps to division_ranking.
+            division_ranking = self._extract_rank_by_header(values, header_map, "generic")
+        if division_ranking is None and league_ranking is None:
+            # T2 sometimes renders a plain-text row without <th> headers where
+            # columns appear as "... Level <rating> <rank> <points> ...".
+            division_ranking = self._extract_rank_after_rating(row_text, rating)
+
+        return division_ranking, league_ranking
+
+    def _extract_rank_by_header(
+        self, values: list[str], header_map: dict[str, int], rank_type: str
+    ) -> int | None:
+        for header, idx in header_map.items():
+            if idx >= len(values):
+                continue
+            if rank_type == "division" and "division" in header and "rank" in header:
+                return self._parse_rank_number(values[idx])
+            if rank_type == "league" and "league" in header and "rank" in header:
+                return self._parse_rank_number(values[idx])
+            if rank_type == "generic" and header == "rank":
+                return self._parse_rank_number(values[idx])
+        return None
+
+    def _parse_rank_number(self, value: str) -> int | None:
+        cleaned = value.strip()
+        if not cleaned or cleaned in {"-", "N/A", "n/a"}:
+            return None
+        match = self.RANK_NUMBER_RE.search(cleaned)
+        if not match:
+            return None
+        return int(match.group(1))
+
+    def _extract_rank_after_rating(self, row_text: str, rating: str) -> int | None:
+        token_pattern = re.compile(
+            rf"(?<![\d.]){re.escape(rating)}(?![\d.])\s+(\d+)\b"
+        )
+        match = token_pattern.search(row_text)
+        if not match:
+            return None
+        return int(match.group(1))
+
+    def _normalize_header(self, value: str) -> str:
+        return re.sub(r"\s+", " ", value.strip().lower())
 
     def is_required(self) -> bool:
         return True

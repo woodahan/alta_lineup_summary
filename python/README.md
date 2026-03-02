@@ -141,12 +141,14 @@ Optional columns:
 - `highest_year_ultimate`
 - `profile_url_ultimate`
 - `profile_url_usta`
+- `winning_source`
 - `winning_rating`
 - `winning_play_year`
-- `winning_source`
+- `division_ranking`
+- `league_ranking`
 - `profile_url`
 - `match_confidence`
 - `status`
 - `notes`
 
-If duplicate profiles remain after filtering, row status is `ambiguous` and `notes` includes `candidate_urls=`.
+If duplicate profiles remain after filtering, row status is `ambiguous` and `notes` includes a `candidate_urls` section.

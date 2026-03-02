@@ -95,3 +95,77 @@ def test_fetch_player_history_ratings_parses_two_digit_season_year() -> None:
 
     ratings = adapter._fetch_player_history_ratings(FakeResponse(search_html), player_id="30760")
     assert [(r.value, r.year) for r in ratings] == [("3.5", 2006)]
+
+
+def test_fetch_player_history_ratings_parses_generic_rank_as_division_ranking() -> None:
+    search_html = """
+    <html><body>
+      <form id=\"aspnetForm\" action=\"/search\">
+        <input type=\"hidden\" name=\"__VIEWSTATE\" value=\"abc\" />
+      </form>
+    </body></html>
+    """
+
+    detail_html = """
+    <html><body>
+      <div id=\"ctl00_PageBody_PlayerHistory\">
+        <table>
+          <tr><th>League</th><th>Team</th><th>Level</th><th>Rank</th><th>Points</th></tr>
+          <tr><td>Fall '24</td><td>A</td><td>4.0</td><td>2</td><td>10</td></tr>
+        </table>
+      </div>
+    </body></html>
+    """
+
+    adapter = T2Adapter(
+        username="u",
+        password="p",
+        login_url="https://t2.example/login",
+        search_url="https://t2.example/search",
+        cache_dir=".cache/alta_tool",
+    )
+    adapter.session = FakeSession(detail_html)  # type: ignore[assignment]
+
+    ratings = adapter._fetch_player_history_ratings(FakeResponse(search_html), player_id="30760")
+    assert len(ratings) == 1
+    assert ratings[0].value == "4.0"
+    assert ratings[0].year == 2024
+    assert ratings[0].division_ranking == 2
+    assert ratings[0].league_ranking is None
+
+
+def test_fetch_player_history_ratings_parses_rank_without_table_headers() -> None:
+    search_html = """
+    <html><body>
+      <form id="aspnetForm" action="/search">
+        <input type="hidden" name="__VIEWSTATE" value="abc" />
+      </form>
+    </body></html>
+    """
+
+    detail_html = """
+    <html><body>
+      <div id="ctl00_PageBody_PlayerHistory">
+        <table>
+          <tr><td>League Team Level Rank Points Win Pct.</td></tr>
+          <tr><td>Bus. Women's Doubles - Fall '06 Johnson K/d'aries N 3.5 2 12 57.69</td></tr>
+        </table>
+      </div>
+    </body></html>
+    """
+
+    adapter = T2Adapter(
+        username="u",
+        password="p",
+        login_url="https://t2.example/login",
+        search_url="https://t2.example/search",
+        cache_dir=".cache/alta_tool",
+    )
+    adapter.session = FakeSession(detail_html)  # type: ignore[assignment]
+
+    ratings = adapter._fetch_player_history_ratings(FakeResponse(search_html), player_id="30760")
+    assert len(ratings) == 1
+    assert ratings[0].value == "3.5"
+    assert ratings[0].year == 2006
+    assert ratings[0].division_ranking == 2
+    assert ratings[0].league_ranking is None

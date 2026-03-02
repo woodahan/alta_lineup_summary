@@ -63,4 +63,6 @@ class GoogleSheetsClient:
 
         ws.clear()
         ws.update(values=values, range_name="A1")
-        ws.format("Q:Q", {"wrapStrategy": "WRAP"})
+        notes_col_idx = OutputRow.headers().index("notes")
+        notes_col = chr(ord("A") + notes_col_idx)
+        ws.format(f"{notes_col}:{notes_col}", {"wrapStrategy": "WRAP"})
