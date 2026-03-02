@@ -24,6 +24,8 @@ class PlayerQuery:
 class RawRating:
     value: str
     year: int
+    division_ranking: int | None = None
+    league_ranking: int | None = None
 
 
 @dataclass(frozen=True)
@@ -44,6 +46,8 @@ class RatingRecord:
     year: int
     profile_url: str
     city: str | None
+    division_ranking: int | None = None
+    league_ranking: int | None = None
 
 
 @dataclass(frozen=True)
@@ -62,6 +66,8 @@ class AggregatedRating:
     winning_source: str
     profile_url: str
     player_city: str | None
+    division_ranking: int | None = None
+    league_ranking: int | None = None
 
 
 @dataclass(frozen=True)
@@ -76,9 +82,11 @@ class OutputRow:
     highest_year_ultimate: int | None
     profile_url_ultimate: str | None
     profile_url_usta: str | None
+    winning_source: str | None
     winning_rating: str | None
     winning_play_year: int | None
-    winning_source: str | None
+    division_ranking: int | None
+    league_ranking: int | None
     profile_url: str | None
     match_confidence: Confidence
     status: Status
@@ -97,9 +105,11 @@ class OutputRow:
             "highest_year_ultimate",
             "profile_url_ultimate",
             "profile_url_usta",
+            "winning_source",
             "winning_rating",
             "winning_play_year",
-            "winning_source",
+            "division_ranking",
+            "league_ranking",
             "profile_url",
             "match_confidence",
             "status",
@@ -118,9 +128,11 @@ class OutputRow:
             str(self.highest_year_ultimate or ""),
             self.profile_url_ultimate or "",
             self.profile_url_usta or "",
+            self.winning_source or "",
             self.winning_rating or "",
             str(self.winning_play_year or ""),
-            self.winning_source or "",
+            str(self.division_ranking or ""),
+            str(self.league_ranking or ""),
             self.profile_url or "",
             self.match_confidence,
             self.status,

@@ -154,11 +154,15 @@ def main() -> int:
         rating_match = adapter.RATING_RE.search(row_text)
         rating = rating_match.group(1) if rating_match else None
         normalized = normalize_rating(rating) if rating else None
+        division_ranking, league_ranking = adapter._extract_rankings(
+            row, row_text, rating or ""
+        )
 
         if args.show_all_rows or (year and rating):
             print(
                 f"row={row_text}\n"
-                f"  year={year} rating={rating} normalized={normalized}"
+                f"  year={year} rating={rating} normalized={normalized} "
+                f"division_ranking={division_ranking} league_ranking={league_ranking}"
             )
 
         if year and rating:

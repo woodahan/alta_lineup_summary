@@ -20,13 +20,25 @@ def select_highest(records: list[RatingRecord]) -> AggregatedRating | None:
     if not records:
         return None
 
-    winner = sorted(records, key=lambda r: (r.normalized_value, r.year), reverse=True)[0]
+    # Prefer higher rating/year; then prefer better (smaller) league/division rank when tied.
+    winner = sorted(
+        records,
+        key=lambda r: (
+            r.normalized_value,
+            r.year,
+            -(r.league_ranking if r.league_ranking is not None else 9999),
+            -(r.division_ranking if r.division_ranking is not None else 9999),
+        ),
+        reverse=True,
+    )[0]
     return AggregatedRating(
         winning_rating=winner.rating_original,
         winning_play_year=winner.year,
         winning_source=winner.source,
         profile_url=winner.profile_url,
         player_city=winner.city,
+        division_ranking=winner.division_ranking,
+        league_ranking=winner.league_ranking,
     )
 
 
@@ -133,6 +145,8 @@ def process_player(query: PlayerQuery, adapters: list[SourceAdapter]) -> OutputR
                     year=raw_rating.year,
                     profile_url=selected.profile_url,
                     city=selected.city,
+                    division_ranking=raw_rating.division_ranking,
+                    league_ranking=raw_rating.league_ranking,
                 )
             )
 
@@ -164,6 +178,13 @@ def process_player(query: PlayerQuery, adapters: list[SourceAdapter]) -> OutputR
         )
 
     aggregated = select_highest(rating_records)
+    if (
+        aggregated
+        and aggregated.winning_source != "usta"
+        and aggregated.division_ranking is None
+        and aggregated.league_ranking is None
+    ):
+        extra_notes.append("winning source ranking missing")
     notes = _notes_with_urls(ambiguous_urls, extra_notes)
 
     if has_high_confidence:
@@ -202,6 +223,8 @@ def process_player(query: PlayerQuery, adapters: list[SourceAdapter]) -> OutputR
         winning_rating=aggregated.winning_rating if aggregated else None,
         winning_play_year=aggregated.winning_play_year if aggregated else None,
         winning_source=aggregated.winning_source if aggregated else None,
+        division_ranking=aggregated.division_ranking if aggregated else None,
+        league_ranking=aggregated.league_ranking if aggregated else None,
         profile_url=aggregated.profile_url if aggregated else None,
         match_confidence=confidence,
         status=status,

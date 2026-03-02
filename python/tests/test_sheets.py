@@ -90,6 +90,8 @@ def test_sheets_read_and_write(monkeypatch):
             winning_rating="4.0",
             winning_play_year=2024,
             winning_source="t2",
+            division_ranking=1,
+            league_ranking=5,
             profile_url="https://t2",
             match_confidence="high",
             status="ok",
@@ -104,4 +106,6 @@ def test_sheets_read_and_write(monkeypatch):
     assert values[1][0] == "Jane"
     assert "highest_rating_t2" in values[0]
     assert "winning_rating" in values[0]
-    assert ("Q:Q", {"wrapStrategy": "WRAP"}) in fake_spreadsheet.output_ws.formatted_ranges
+    notes_idx = OutputRow.headers().index("notes")
+    notes_col = chr(ord("A") + notes_idx)
+    assert (f"{notes_col}:{notes_col}", {"wrapStrategy": "WRAP"}) in fake_spreadsheet.output_ws.formatted_ranges

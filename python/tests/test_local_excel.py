@@ -50,6 +50,8 @@ def test_local_excel_read_input_and_write_output(tmp_path: Path) -> None:
             winning_rating="4.0",
             winning_play_year=2024,
             winning_source="t2",
+            division_ranking=1,
+            league_ranking=5,
             profile_url="https://t2",
             match_confidence="high",
             status="ok",
@@ -61,10 +63,11 @@ def test_local_excel_read_input_and_write_output(tmp_path: Path) -> None:
     wb = openpyxl.load_workbook(workbook)
     assert "Output" in wb.sheetnames
     out = wb["Output"]
+    notes_col = OutputRow.headers().index("notes") + 1
     assert out.cell(row=1, column=1).value == "first_name"
     assert out.cell(row=2, column=1).value == "Jane"
-    assert out.cell(row=2, column=17).alignment.wrap_text is True
-    assert "\n" in out.cell(row=2, column=17).value
+    assert out.cell(row=2, column=notes_col).alignment.wrap_text is True
+    assert "\n" in out.cell(row=2, column=notes_col).value
 
 
 def test_local_excel_requires_input_tab(tmp_path: Path) -> None:

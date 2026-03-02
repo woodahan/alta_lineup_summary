@@ -102,6 +102,56 @@ def test_process_player_populates_per_source_and_winner() -> None:
     assert row.profile_url == "https://ultimate/jane"
 
 
+def test_process_player_populates_winning_rankings() -> None:
+    query = PlayerQuery(first_name="Jane", last_name="Doe", city_hint="Atlanta")
+    t2_candidates = [
+        CandidateProfile(
+            "Jane",
+            "Doe",
+            "Atlanta",
+            "GA",
+            "https://t2/jane",
+            [RawRating("4.0", 2024, division_ranking=2, league_ranking=12)],
+        )
+    ]
+
+    row = process_player(
+        query,
+        [
+            FakeAdapter("t2", t2_candidates),
+            FakeAdapter("ultimate", []),
+            FakeAdapter("usta", []),
+        ],
+    )
+
+    assert row.status == "ok"
+    assert row.winning_source == "t2"
+    assert row.division_ranking == 2
+    assert row.league_ranking == 12
+
+
+def test_process_player_adds_missing_ranking_note_for_non_usta_winner() -> None:
+    query = PlayerQuery(first_name="Jane", last_name="Doe", city_hint="Atlanta")
+    ultimate_candidates = [
+        CandidateProfile("Jane", "Doe", "Atlanta", "GA", "https://ultimate/jane", [RawRating("4.0", 2024)])
+    ]
+
+    row = process_player(
+        query,
+        [
+            FakeAdapter("t2", []),
+            FakeAdapter("ultimate", ultimate_candidates),
+            FakeAdapter("usta", []),
+        ],
+    )
+
+    assert row.status == "ok"
+    assert row.winning_source == "ultimate"
+    assert row.division_ranking is None
+    assert row.league_ranking is None
+    assert "winning source ranking missing" in row.notes
+
+
 def test_process_player_all_errors_sets_error_status() -> None:
     query = PlayerQuery(first_name="Jane", last_name="Doe", city_hint="Atlanta")
     row = process_player(
